@@ -10,5 +10,11 @@ bluetooth
 ## for Display and touchpanel test, via drm-backend.so
 weston
 libgl1-mesa-dri
+## lsusb command
 usbutils
+## for benchmarking
 procps
+time
+memtester
+## UnixBench
+build-essential
