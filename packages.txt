@@ -10,3 +10,5 @@ bluetooth
 ## for Display and touchpanel test, via drm-backend.so
 weston
 libgl1-mesa-dri
+usbutils
+procps
