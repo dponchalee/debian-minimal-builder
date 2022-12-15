@@ -57,7 +57,7 @@ ln -s functions/mass_storage.usb0 configs/c.1/
 # FIXME
 # - use the first available block storage
 # - detect a non-ramdisk startup and dont export the root filesystem?
-echo /dev/mmcblk0 >functions/mass_storage.usb0/lun.0/file
+echo /dev/mmcblk6 >functions/mass_storage.usb0/lun.0/file
 
 # shellcheck disable=SC2094
 # what crack is shellcheck smoking with this one?!

@@ -2,4 +2,11 @@
 #
 
 # Uncomment the following line to install the package
-#vim-tiny
+vim-tiny
+## for nmcli d wifi
+network-manager
+## for bluetoothctl
+bluetooth
+## for Display and touchpanel test, via drm-backend.so
+weston
+libgl1-mesa-dri
