@@ -108,17 +108,17 @@ flake8:
 # install any packages needed for this builder
 build-depends: $(TAG)/build-depends
 $(TAG)/build-depends: Makefile
-	sudo apt-get -qq install $(BUILD_DEPENDS)
+	sudo -E apt-get -qq install $(BUILD_DEPENDS)
 	$(call tag,build-depends)
 
 # some of the debian packages need a urandom to install properly
 $(DEBOOT)/dev/urandom:
-	sudo mkdir -p $(DEBOOT)/dev
-	sudo mknod $(DEBOOT)/dev/urandom c 1 9
+	sudo -E mkdir -p $(DEBOOT)/dev
+	sudo -E mknod $(DEBOOT)/dev/urandom c 1 9
 
 $(TAG)/policy-rc.d.add: policy-rc.d
-	sudo mkdir -p $(DEBOOT)/usr/sbin
-	sudo cp $< $(DEBOOT)/usr/sbin/policy-rc.d
+	sudo -E mkdir -p $(DEBOOT)/usr/sbin
+	sudo -E cp $< $(DEBOOT)/usr/sbin/policy-rc.d
 	$(call tag,policy-rc.d.add)
 
 # a list of files, which contain additional packages to install
@@ -145,13 +145,13 @@ $(TAG)/multistrap-pre.$(CONFIG_DEBIAN_ARCH): $(TAG)/policy-rc.d.add
 $(TAG)/multistrap-pre.$(CONFIG_DEBIAN_ARCH): $(MULTISTRAP_CONF)
 $(TAG)/multistrap-pre.$(CONFIG_DEBIAN_ARCH): multistrap.configscript
 $(TAG)/multistrap-pre.$(CONFIG_DEBIAN_ARCH): $(DEBOOT)/dev/urandom
-	sudo /usr/sbin/multistrap -d $(DEBOOT) --arch $(CONFIG_DEBIAN_ARCH) \
+	sudo -E /usr/sbin/multistrap -d $(DEBOOT) --arch $(CONFIG_DEBIAN_ARCH) \
 	    -f $(MULTISTRAP_CONF) >$(BUILD)/multistrap-pre.log
 	$(call tag,multistrap-pre.$(CONFIG_DEBIAN_ARCH))
 
 # multistrap-post runs the package configure scripts under emulation
 $(TAG)/multistrap-post.$(CONFIG_DEBIAN_ARCH): $(TAG)/multistrap-pre.$(CONFIG_DEBIAN_ARCH)
-	sudo chroot $(DEBOOT) ./multistrap.configscript >>$(BUILD)/multistrap.log
+	sudo -E chroot $(DEBOOT) ./multistrap.configscript >>$(BUILD)/multistrap.log
 	$(call tag,multistrap-post.$(CONFIG_DEBIAN_ARCH))
 
 # perform the debian install
@@ -180,33 +180,33 @@ $(TAG)/customise.$(CONFIG_DEBIAN_ARCH): scripts/authorized_keys_path
 
 # minimise the image size
 $(TAG)/minimise.$(CONFIG_DEBIAN_ARCH): $(TAG)/multistrap.$(CONFIG_DEBIAN_ARCH)
-	sudo env "CONFIGDIRS=$(CONFIGDIRS)" ./scripts/packages.addextra \
+	sudo -E env "CONFIGDIRS=$(CONFIGDIRS)" ./scripts/packages.addextra \
 	    $(DEBOOT) $(CONFIG_DEBIAN_ARCH) minimise
-	sudo env "CONFIGDIRS=$(CONFIGDIRS)" ./scripts/packages.runscripts \
+	sudo -E env "CONFIGDIRS=$(CONFIGDIRS)" ./scripts/packages.runscripts \
 	    $(DEBOOT) $(CONFIG_DEBIAN_ARCH) minimise
-	sudo rm -f $(DEBOOT)/multistrap.configscript $(DEBOOT)/dev/mmcblk0
+	sudo -E rm -f $(DEBOOT)/multistrap.configscript $(DEBOOT)/dev/mmcblk0
 	$(call tag,minimise.$(CONFIG_DEBIAN_ARCH))
 
 # fixup the image to actually boot
 $(TAG)/fixup.$(CONFIG_DEBIAN_ARCH): $(TAG)/multistrap.$(CONFIG_DEBIAN_ARCH)
-	sudo env "CONFIGDIRS=$(CONFIGDIRS)" ./scripts/packages.addextra \
+	sudo -E env "CONFIGDIRS=$(CONFIGDIRS)" ./scripts/packages.addextra \
 	    $(DEBOOT) $(CONFIG_DEBIAN_ARCH) fixup
-	sudo env "CONFIGDIRS=$(CONFIGDIRS)" ./scripts/packages.runscripts \
+	sudo -E env "CONFIGDIRS=$(CONFIGDIRS)" ./scripts/packages.runscripts \
 	    $(DEBOOT) $(CONFIG_DEBIAN_ARCH) fixup
-	sudo rm -f $(DEBOOT)/usr/sbin/policy-rc.d
+	sudo -E rm -f $(DEBOOT)/usr/sbin/policy-rc.d
 	$(call tag,fixup.$(CONFIG_DEBIAN_ARCH))
 
 # image customisation - setting the default config.
 $(TAG)/customise.$(CONFIG_DEBIAN_ARCH): $(TAG)/multistrap.$(CONFIG_DEBIAN_ARCH)
-	sudo env "CONFIGDIRS=$(CONFIGDIRS)" ./scripts/authorized_keys_local \
+	sudo -E env "CONFIGDIRS=$(CONFIGDIRS)" ./scripts/authorized_keys_local \
 	    $(DEBOOT) $(CONFIG_DEBIAN_ARCH) customise
-	sudo env "CONFIGDIRS=$(CONFIGDIRS)" ./scripts/authorized_keys_path \
+	sudo -E env "CONFIGDIRS=$(CONFIGDIRS)" ./scripts/authorized_keys_path \
 	    $(DEBOOT) $(CONFIG_DEBIAN_ARCH) customise
-	sudo env "CONFIGDIRS=$(CONFIGDIRS)" ./scripts/packages.addextra \
+	sudo -E env "CONFIGDIRS=$(CONFIGDIRS)" ./scripts/packages.addextra \
 	    $(DEBOOT) $(CONFIG_DEBIAN_ARCH) customise
-	sudo env "CONFIGDIRS=$(CONFIGDIRS)" ./scripts/packages.runscripts \
+	sudo -E env "CONFIGDIRS=$(CONFIGDIRS)" ./scripts/packages.runscripts \
 	    $(DEBOOT) $(CONFIG_DEBIAN_ARCH) customise
-	echo root:$(CONFIG_ROOT_PASS) | sudo chpasswd -c SHA256 -R $(realpath $(DEBOOT))
+	echo root:$(CONFIG_ROOT_PASS) | sudo -E chpasswd -c SHA256 -R $(realpath $(DEBOOT))
 	$(call tag,customise.$(CONFIG_DEBIAN_ARCH))
 
 # TODO: consider what password should be default
@@ -218,7 +218,7 @@ $(TAG)/debian.$(CONFIG_DEBIAN_ARCH): $(TAG)/minimise.$(CONFIG_DEBIAN_ARCH) $(TAG
 $(BUILD)/debian.$(CONFIG_DISTRO).$(CONFIG_DEBIAN_ARCH).cpio: $(TAG)/debian.$(CONFIG_DEBIAN_ARCH)
 	( \
             cd $(DEBOOT); \
-            sudo find . -print0 | sudo cpio -0 -H newc -R 0:0 -o \
+            sudo -E find . -print0 | sudo -E cpio -0 -H newc -R 0:0 -o \
 	) > $@
 
 # Create a dependancy file for a given configdir
@@ -235,7 +235,7 @@ include $(CONFIGDIR_DEPS)
 
 clean:
 	rm -f $(MULTISTRAP_CONF) $(TAG)/* $(CONFIGDIR_DEPS)
-	sudo rm -rf $(BUILD)/debian.$(CONFIG_DISTRO).*
+	sudo -E rm -rf $(BUILD)/debian.$(CONFIG_DISTRO).*
 
 reallyclean:
 	rm -rf $(BUILD)
